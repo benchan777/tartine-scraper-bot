@@ -12,7 +12,7 @@ import asyncio
 load_dotenv()
 
 bot = commands.Bot(command_prefix = '$', intents = discord.Intents.all())
-engine = create_engine('sqlite:///database.db')
+engine = create_engine(os.getenv('database_key'))
 Base.metadata.create_all(engine)
 Session = sessionmaker(engine)
 Session.configure(bind = engine)
