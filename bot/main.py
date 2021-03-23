@@ -35,8 +35,8 @@ async def test(ctx, *args):
 
 @bot.command()
 async def selenium_test(ctx):
-    driver = webdriver.Chrome(os.getenv('webdriver_path'))
-    driver.get("https://guerrero.tartine.menu/pickup/")
+    driver = webdriver.Chrome(os.getenv('webdriver_path')) #Instantiate Chrome webdriver
+    driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
     items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
     descriptions = driver.find_elements_by_class_name('menu-item-description') #Retrieves item description
@@ -49,16 +49,19 @@ async def selenium_test(ctx):
     index = 0
 
     for item in items:
+        #Attempt to find description of current item. Display N/A if it can't be found
         try:
             description = descriptions[index].text
         except:
             description = 'N/A'
 
+        #Attempt to find price of current item. Display N/A if it can't be found
         try:
             price = prices[index].text
         except:
             price = 'N/A'
 
+        #Check if the string 'Not Available exists in this element at current index. If not, assume item is available and set availability as 'Available'
         availability = 'Not Available' if 'Not Available' in stock[index].text else 'Available'
 
         embed = store_info_embed(
@@ -69,7 +72,6 @@ async def selenium_test(ctx):
             0x00ff00 if availability == 'Available' else 0xff0000
             )
 
-        # await ctx.send(f"**Name: {item.text}**\nDescription: {description}\nPrice: {price}\nAvailability: {availability}")
         await ctx.send(embed = embed)
 
         index += 1
