@@ -17,6 +17,12 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(engine)
 Session.configure(bind = engine)
 db = Session()
+
+options = webdriver.ChromeOptions()
+options.add_argument('--disable-gpu')
+options.add_argument('--no-sandbox')
+options.add_argument('--headless')
+
 from bot.functions import store_info_embed
 
 @bot.event
@@ -36,7 +42,7 @@ async def test(ctx, *args):
 
 @bot.command()
 async def selenium_test(ctx):
-    driver = webdriver.Chrome(os.getenv('webdriver_path')) #Instantiate Chrome webdriver
+    driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
     items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
@@ -83,7 +89,7 @@ async def selenium_test(ctx):
 #Test function to check stock of Country Loaf every 30 seconds
 async def start_loop(ctx):
     while True:
-        driver = webdriver.Chrome(os.getenv('webdriver_path'))
+        driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options)
         driver.get("https://guerrero.tartine.menu/pickup/")
 
         items = driver.find_elements_by_class_name('menu-item-heading')
