@@ -42,7 +42,7 @@ async def selenium_test(ctx):
     options.add_argument('--no-sandbox')
     options.add_argument('--headless')
 
-    driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), chrome_options = options) #Instantiate Chrome webdriver
+    driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options) #Instantiate Chrome webdriver
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
     items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
