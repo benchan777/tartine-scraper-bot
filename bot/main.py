@@ -38,13 +38,11 @@ async def test(ctx, *args):
 async def selenium_test(ctx):
     options = webdriver.ChromeOptions()
     options.binary_location = os.getenv('GOOGLE_CHROME_BIN')
-    
-    driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options) #Instantiate Chrome webdriver
-    
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--headless')
-
+    
+    driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options) #Instantiate Chrome webdriver
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
     items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
