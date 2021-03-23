@@ -8,8 +8,10 @@ import os
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import asyncio
+import requests
 
 load_dotenv()
+country_loaf_stock = 'Not Available'
 
 bot = commands.Bot(command_prefix = '$', intents = discord.Intents.all())
 engine = create_engine(os.getenv('database_key'))
@@ -17,6 +19,12 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(engine)
 Session.configure(bind = engine)
 db = Session()
+
+options = webdriver.ChromeOptions()
+options.add_argument('--disable-gpu')
+options.add_argument('--no-sandbox')
+options.add_argument('--headless')
+
 from bot.functions import store_info_embed
 
 @bot.event
@@ -36,6 +44,7 @@ async def test(ctx, *args):
 
 @bot.command()
 async def selenium_test(ctx):
+<<<<<<< HEAD
     options = webdriver.ChromeOptions()
     options.binary_location = os.getenv('GOOGLE_CHROME_BIN')
     options.add_argument('--disable-gpu')
@@ -43,6 +52,9 @@ async def selenium_test(ctx):
     options.add_argument('--headless')
     
     driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options) #Instantiate Chrome webdriver
+=======
+    driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver
+>>>>>>> main
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
     items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
@@ -86,10 +98,10 @@ async def selenium_test(ctx):
     driver.close()
 
 @bot.command()
-#Test function to check stock of Country Loaf every 30 seconds
-async def start_loop(ctx):
+#Test function to check stock of Country Loaf every 60 seconds
+async def track_country_loaf(ctx):
     while True:
-        driver = webdriver.Chrome(os.getenv('webdriver_path'))
+        driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options)
         driver.get("https://guerrero.tartine.menu/pickup/")
 
         items = driver.find_elements_by_class_name('menu-item-heading')
@@ -98,6 +110,17 @@ async def start_loop(ctx):
         stock = driver.find_elements_by_class_name('mb12m')
 
         availability = 'Not Available' if 'Not Available' in stock[0].text else 'Available'
+
+        global country_loaf_stock
+        if availability != country_loaf_stock:
+            if availability == 'Available':
+                requests.post(f"https://maker.ifttt.com/trigger/green/with/key/{os.getenv('ifttt_key')}")
+                print('Stock has changed to available. Setting light to green.')
+                country_loaf_stock = availability
+            else:
+                requests.post(f"https://maker.ifttt.com/trigger/red/with/key/{os.getenv('ifttt_key')}")
+                print('Stock has changed to unavailable. Setting light to red.')
+                country_loaf_stock = availability
 
         embed = store_info_embed(
             items[0].text,
@@ -109,4 +132,4 @@ async def start_loop(ctx):
 
         await ctx.send(embed = embed)
         driver.close()
-        await asyncio.sleep(30)
+        await asyncio.sleep(60)
