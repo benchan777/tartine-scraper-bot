@@ -3,10 +3,11 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import os
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+import asyncio
 
 load_dotenv()
 
@@ -77,3 +78,29 @@ async def selenium_test(ctx):
         index += 1
 
     driver.close()
+
+@bot.command()
+#Test function to check stock of Country Loaf every 30 seconds
+async def start_loop(ctx):
+    while True:
+        driver = webdriver.Chrome(os.getenv('webdriver_path'))
+        driver.get("https://guerrero.tartine.menu/pickup/")
+
+        items = driver.find_elements_by_class_name('menu-item-heading')
+        descriptions = driver.find_elements_by_class_name('menu-item-description')
+        prices = driver.find_elements_by_class_name('pricecolor')
+        stock = driver.find_elements_by_class_name('mb12m')
+
+        availability = 'Not Available' if 'Not Available' in stock[0].text else 'Available'
+
+        embed = store_info_embed(
+            items[0].text,
+            descriptions[0].text,
+            prices[0].text,
+            availability,
+            0x00ff00 if availability == 'Available' else 0xff0000
+        )
+
+        await ctx.send(embed = embed)
+        driver.close()
+        await asyncio.sleep(30)
