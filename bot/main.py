@@ -23,7 +23,7 @@ db = Session() #Initialize Session class as db
 
 #Configure options for Chrome webdriver
 options = webdriver.ChromeOptions()
-options.binary_location(os.getenv('GOOGLE_CHROME_PATH'))
+options.binary_location(os.getenv('GOOGLE_CHROME_BIN'))
 options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
 options.add_argument('--headless')
