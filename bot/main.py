@@ -98,9 +98,29 @@ async def track_country_loaf(ctx):
         items = driver.find_elements_by_class_name('menu-item-heading')
         descriptions = driver.find_elements_by_class_name('menu-item-description')
         prices = driver.find_elements_by_class_name('pricecolor')
-        stock = driver.find_elements_by_class_name('mb12m')
+        stock_status = driver.find_elements_by_class_name('mb12m')
 
-        availability = 'Not Available' if 'Not Available' in stock[0].text else 'Available'
+        try:
+            item = items[0].text
+        except:
+            item = 'N/A'
+
+        try:
+            description = descriptions[0].text
+        except:
+            description = 'N/A'
+
+        try:
+            price = prices[0].text
+        except:
+            price = 'N/A'
+
+        try:
+            stock = stock_status[0].text
+        except:
+            stock = 'N/A'
+
+        availability = 'Not Available' if 'Not Available' in stock else 'N/A' if 'N/A' in stock else 'Available'
 
         global country_loaf_stock
         if availability != country_loaf_stock:
@@ -108,17 +128,19 @@ async def track_country_loaf(ctx):
                 requests.post(f"https://maker.ifttt.com/trigger/green/with/key/{os.getenv('ifttt_key')}")
                 print('Stock has changed to available. Setting light to green.')
                 country_loaf_stock = availability
-            else:
+            elif availability == 'Not Available':
                 requests.post(f"https://maker.ifttt.com/trigger/red/with/key/{os.getenv('ifttt_key')}")
                 print('Stock has changed to unavailable. Setting light to red.')
                 country_loaf_stock = availability
+            else:
+                print('Availability N/A. Maybe scraping failed?')
 
         embed = store_info_embed(
-            items[0].text,
-            descriptions[0].text,
-            prices[0].text,
+            item,
+            description,
+            price,
             availability,
-            0x00ff00 if availability == 'Available' else 0xff0000
+            0x00ff00 if availability == 'Available' else 0xff0000 if availability == 'Not Available' else 0xffff00
         )
 
         await ctx.send(embed = embed)
