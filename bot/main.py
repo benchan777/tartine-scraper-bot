@@ -27,6 +27,7 @@ options.binary_location = os.getenv('GOOGLE_CHROME_BIN')
 options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
 options.add_argument('--headless')
+options.add_argument('--disable-dev-shm-usage')
 
 from bot.functions import store_info_embed
 
