@@ -2,15 +2,13 @@ from bot.models import Base, CountryLoaf
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import discord
 from discord.ext import commands, tasks
-import os
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import asyncio
-import requests
+import asyncio, discord, os, requests
 
 load_dotenv()
+
 #Allows function to keep track of stock availability. If a change is detected, actions can be taken.
 country_loaf_stock = ' '
 
@@ -27,7 +25,8 @@ options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
 options.add_argument('--headless')
 
-from bot.functions import store_info_embed
+#Import functions after initializing everything to avoid circular import error
+from bot.functions import store_info_embed, store_country_loaf_info
 
 @bot.event
 async def on_ready():
@@ -142,6 +141,8 @@ async def track_country_loaf(ctx):
             #If availability is N/A, do nothing. Scraping probably failed for some reason
             else:
                 print('Availability N/A. Maybe scraping failed?')
+
+        store_country_loaf_info(availability)
 
         embed = store_info_embed(
             item,
