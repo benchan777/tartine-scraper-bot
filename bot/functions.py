@@ -1,4 +1,6 @@
-import discord
+from bot.main import db
+from bot.models import CountryLoaf
+import datetime, discord
 from discord.ext import commands
 
 #Function that helps to create discord embeds for item info
@@ -16,3 +18,16 @@ def store_info_embed(name, description, price, availability, color):
     embed.add_field(name = 'Availability', value = availability, inline = True)
 
     return embed
+
+#Stores date/time/availability info of country loaf every time site is scraped
+def store_country_loaf_info(availability):
+    now = datetime.datetime.now()
+
+    new_entry = CountryLoaf(
+        datetime = datetime.datetime.now(),
+        date = now.strftime("%m/%d/%Y"),
+        time = now.strftime("%H:%M:%S"),
+        availability = availability
+    )
+    db.add(new_entry)
+    db.commit()
