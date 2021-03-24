@@ -11,15 +11,17 @@ import asyncio
 import requests
 
 load_dotenv()
-country_loaf_stock = 'Not Available'
+#Allows function to keep track of stock availability. If a change is detected, actions can be taken.
+country_loaf_stock = ' '
 
-bot = commands.Bot(command_prefix = '$', intents = discord.Intents.all())
-engine = create_engine(os.getenv('database_key'))
-Base.metadata.create_all(engine)
-Session = sessionmaker(engine)
-Session.configure(bind = engine)
-db = Session()
+bot = commands.Bot(command_prefix = '$', intents = discord.Intents.all()) #Initialize Discord bot
+engine = create_engine(os.getenv('database_key')) #Create SQLAlchemy engine
+Base.metadata.create_all(engine) #Create database tables
+Session = sessionmaker(engine) #Define Session class
+Session.configure(bind = engine) #Connect Session class to the engine
+db = Session() #Initialize Session class as db
 
+#Configure options for Chrome webdriver
 options = webdriver.ChromeOptions()
 options.binary_location(os.getenv('GOOGLE_CHROME_PATH'))
 options.add_argument('--disable-gpu')
@@ -45,7 +47,7 @@ async def test(ctx, *args):
 
 @bot.command()
 async def selenium_test(ctx):
-    driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options) #Instantiate Chrome webdriver
+    driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options) #Instantiate Chrome webdriver with defined options
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
     items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
@@ -92,14 +94,15 @@ async def selenium_test(ctx):
 #Test function to check stock of Country Loaf every 60 seconds
 async def track_country_loaf(ctx):
     while True:
-        driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options)
-        driver.get("https://guerrero.tartine.menu/pickup/")
+        driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options) #Instantiate Chrome webdriver with defined options
+        driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
-        items = driver.find_elements_by_class_name('menu-item-heading')
-        descriptions = driver.find_elements_by_class_name('menu-item-description')
-        prices = driver.find_elements_by_class_name('pricecolor')
-        stock_status = driver.find_elements_by_class_name('mb12m')
+        items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
+        descriptions = driver.find_elements_by_class_name('menu-item-description') #Retrieves item description
+        prices = driver.find_elements_by_class_name('pricecolor') #Retrieves item price
+        stock_status = driver.find_elements_by_class_name('mb12m') #Retrieves status of item's stock
 
+        #Country loaf is the first item on the menu. Index 0 will retrieve all information about Country loaf
         try:
             item = items[0].text
         except:
@@ -122,16 +125,22 @@ async def track_country_loaf(ctx):
 
         availability = 'Not Available' if 'Not Available' in stock else 'N/A' if 'N/A' in stock else 'Available'
 
+        #Checks status of bread stock from previous scrape. If there is a change, trigger a change in light color
         global country_loaf_stock
         if availability != country_loaf_stock:
+            #Change light color to green if stock changes from unavailable to available
             if availability == 'Available':
                 requests.post(f"https://maker.ifttt.com/trigger/green/with/key/{os.getenv('ifttt_key')}")
                 print('Stock has changed to available. Setting light to green.')
                 country_loaf_stock = availability
+
+            #Change light color to red if stock changes from available to unavailable
             elif availability == 'Not Available':
                 requests.post(f"https://maker.ifttt.com/trigger/red/with/key/{os.getenv('ifttt_key')}")
                 print('Stock has changed to unavailable. Setting light to red.')
                 country_loaf_stock = availability
+
+            #If availability is N/A, do nothing. Scraping probably failed for some reason
             else:
                 print('Availability N/A. Maybe scraping failed?')
 
@@ -142,7 +151,6 @@ async def track_country_loaf(ctx):
             availability,
             0x00ff00 if availability == 'Available' else 0xff0000 if availability == 'Not Available' else 0xffff00
         )
-
         await ctx.send(embed = embed)
         driver.close()
         await asyncio.sleep(60)
