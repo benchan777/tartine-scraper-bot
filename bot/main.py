@@ -21,6 +21,7 @@ Session.configure(bind = engine)
 db = Session()
 
 options = webdriver.ChromeOptions()
+options.binary_location(os.getenv('GOOGLE_CHROME_PATH'))
 options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
 options.add_argument('--headless')
@@ -44,17 +45,7 @@ async def test(ctx, *args):
 
 @bot.command()
 async def selenium_test(ctx):
-<<<<<<< HEAD
-    options = webdriver.ChromeOptions()
-    options.binary_location = os.getenv('GOOGLE_CHROME_BIN')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--headless')
-    
     driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options) #Instantiate Chrome webdriver
-=======
-    driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver
->>>>>>> main
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
     items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
@@ -101,7 +92,7 @@ async def selenium_test(ctx):
 #Test function to check stock of Country Loaf every 60 seconds
 async def track_country_loaf(ctx):
     while True:
-        driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options)
+        driver = webdriver.Chrome(executable_path = os.getenv('CHROMEDRIVER_PATH'), options = options)
         driver.get("https://guerrero.tartine.menu/pickup/")
 
         items = driver.find_elements_by_class_name('menu-item-heading')
