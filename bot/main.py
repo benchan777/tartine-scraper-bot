@@ -32,6 +32,7 @@ from bot.functions import store_info_embed, store_country_loaf_info
 
 @bot.event
 async def on_ready():
+    await bot.change_presence(activiy = discord.Game(name = 'Looking for bread'))
     print(f"Logged in as {bot.user}")
 
 @bot.command(pass_context = True)
