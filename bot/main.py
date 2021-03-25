@@ -49,13 +49,13 @@ async def selenium_test(ctx):
     driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver with defined options
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
-    items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
-    descriptions = driver.find_elements_by_class_name('menu-item-description') #Retrieves item description
-    prices = driver.find_elements_by_class_name('pricecolor') #Retrieves item price
+    items = driver.find_elements_by_xpath("//span[@class='menu-item-heading ng-binding']") #Retrieves item name
+    descriptions = driver.find_elements_by_xpath("//div[@class='menu-item-description twoline-ellipsis ng-binding ng-scope']") #Retrieves item description
+    prices = driver.find_elements_by_xpath("//div[@class='pricecolor price ng-binding ng-scope']") #Retrieves item price
     thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']") #Retrieves style element that contains thumbnail url
 
     #Jank way to find if each item is in stock. Check if 'Not Available' appears anywhere within the clickable box. If not, assume item is available
-    stock = driver.find_elements_by_class_name('mb12m')
+    stock_status = driver.find_elements_by_xpath("//div[@class='mb12m ng-scope']") #Retrieves status of item's stock
 
     #Keep track of which item we're on in list of items
     index = 0
@@ -106,11 +106,11 @@ async def track_country_loaf(ctx):
             driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver with defined options
             driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
-            items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
-            descriptions = driver.find_elements_by_class_name('menu-item-description') #Retrieves item description
-            prices = driver.find_elements_by_class_name('pricecolor') #Retrieves item price
-            thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']")
-            stock_status = driver.find_elements_by_class_name('mb12m') #Retrieves status of item's stock
+            items = driver.find_elements_by_xpath("//span[@class='menu-item-heading ng-binding']") #Retrieves item name
+            descriptions = driver.find_elements_by_xpath("//div[@class='menu-item-description twoline-ellipsis ng-binding ng-scope']") #Retrieves item description
+            prices = driver.find_elements_by_xpath("//div[@class='pricecolor price ng-binding ng-scope']") #Retrieves item price
+            thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']") #Retrieves style element that contains thumbnail url
+            stock_status = driver.find_elements_by_xpath("//div[@class='mb12m ng-scope']") #Retrieves status of item's stock
 
             #Country loaf is the first item on the menu. Index 0 will retrieve all information about Country loaf
             try:
