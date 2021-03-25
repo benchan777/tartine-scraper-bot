@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from discord.ext import commands, tasks
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import asyncio, discord, os, requests
+import asyncio, discord, os, requests, re
 
 load_dotenv()
 
@@ -32,19 +32,19 @@ from bot.functions import store_info_embed, store_country_loaf_info
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity = discord.Game(name = 'Looking for bread'))
+    await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = 'for bread 🍞'))
     print(f"Logged in as {bot.user}")
 
-@bot.command(pass_context = True)
-async def test(ctx, *args):
-    database_test = CountryLoaf(
-        availability = ' '.join(args),
-        time = '8:00pm'
-    )
-    db.add(database_test)
-    db.commit()
+@bot.command()
+async def test(ctx):
+    driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver with defined options
+    driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
-    await ctx.send(db.query(CountryLoaf.availability).filter_by(time = '8:00pm').first()[0])
+    thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']")
+
+    #What the hell is this even
+    url = re.search('url\(\&quot\;(.*?)\&quot\;\)', thumbnail[0].get_attribute('innerHTML')).group(1)
+    print(url)
 
 @bot.command()
 async def selenium_test(ctx):
@@ -79,7 +79,7 @@ async def selenium_test(ctx):
 
         embed = store_info_embed(
             item.text, 
-            description, 
+            description,
             price, 
             availability,
             0x00ff00 if availability == 'Available' else 0xff0000
@@ -104,7 +104,11 @@ async def track_country_loaf(ctx):
             items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
             descriptions = driver.find_elements_by_class_name('menu-item-description') #Retrieves item description
             prices = driver.find_elements_by_class_name('pricecolor') #Retrieves item price
+            thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']")
             stock_status = driver.find_elements_by_class_name('mb12m') #Retrieves status of item's stock
+
+            #What the hell is this even
+            url = re.search('url\(\&quot\;(.*?)\&quot\;\)', thumbnail[0].get_attribute('innerHTML')).group(1)
 
             #Country loaf is the first item on the menu. Index 0 will retrieve all information about Country loaf
             try:
@@ -153,6 +157,7 @@ async def track_country_loaf(ctx):
             embed = store_info_embed(
                 item,
                 description,
+                url,
                 price,
                 availability,
                 0x00ff00 if availability == 'Available' else 0xff0000 if availability == 'Not Available' else 0xffff00
