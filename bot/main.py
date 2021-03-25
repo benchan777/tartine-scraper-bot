@@ -30,19 +30,8 @@ from bot.functions import store_info_embed, store_country_loaf_info
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity = discord.Game(name = 'Looking for bread'))
+    await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = 'for bread 🍞')
     print(f"Logged in as {bot.user}")
-
-@bot.command(pass_context = True)
-async def test(ctx, *args):
-    database_test = CountryLoaf(
-        availability = ' '.join(args),
-        time = '8:00pm'
-    )
-    db.add(database_test)
-    db.commit()
-
-    await ctx.send(db.query(CountryLoaf.availability).filter_by(time = '8:00pm').first()[0])
 
 @bot.command()
 async def selenium_test(ctx):
