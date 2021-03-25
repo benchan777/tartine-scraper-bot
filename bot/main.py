@@ -30,7 +30,7 @@ from bot.functions import store_info_embed, store_country_loaf_info
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = 'for bread 🍞')
+    await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = 'for bread 🍞'))
     print(f"Logged in as {bot.user}")
 
 @bot.command()

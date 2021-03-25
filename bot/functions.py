@@ -21,16 +21,14 @@ def store_info_embed(name, description, price, availability, color):
 
 #Stores date/time/availability info of country loaf every time site is scraped
 def store_country_loaf_info(availability):
-    now = datetime.datetime.now()
+    PDT = pytz.timezone('America/Los_Angeles') #Get PDT timezone
+    now = datetime.datetime.now(PDT)
 
     new_entry = CountryLoaf(
-        datetime = datetime.datetime.now(),
+        datetime = now,
         date = now.strftime("%m/%d/%Y"),
         time = now.strftime("%H:%M:%S"),
         availability = availability
     )
     db.add(new_entry)
     db.commit()
-
-#TODO: use pytz to manually set timezone
-#retrieve item thumbnail
