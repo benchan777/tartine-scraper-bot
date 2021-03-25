@@ -1,6 +1,6 @@
 from bot.main import db
 from bot.models import CountryLoaf
-import datetime, discord
+import datetime, discord, pytz
 from discord.ext import commands
 
 #Function that helps to create discord embeds for item info
@@ -31,3 +31,6 @@ def store_country_loaf_info(availability):
     )
     db.add(new_entry)
     db.commit()
+
+#TODO: use pytz to manually set timezone
+#retrieve item thumbnail
