@@ -45,7 +45,8 @@ async def test(ctx):
     print(url)
 
 @bot.command()
-async def selenium_test(ctx):
+#Display tartine's entire menu with item status
+async def menu(ctx):
     driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver with defined options
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
@@ -79,7 +80,7 @@ async def selenium_test(ctx):
             url = 'https://i.imgur.com/bAnFQSY.jpg'
 
         #Check if the string 'Not Available exists in this element at current index. If not, assume item is available and set availability as 'Available'
-        availability = 'Not Available' if 'Not Available' in stock[index].text else 'Available'
+        availability = 'Not Available' if 'Not Available' in stock_status[index].text else 'Available'
 
         embed = store_info_embed(
             item.text, 
@@ -98,9 +99,8 @@ async def selenium_test(ctx):
 
 @bot.command()
 #Check stock of Country Loaf every 60 seconds
-async def track_country_loaf(ctx):
+async def country(ctx):
     while True:
-
         #Put entire function into try except because sometimes, something random fails which kills the loop
         try:
             driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver with defined options
