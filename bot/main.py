@@ -47,16 +47,18 @@ async def test(ctx):
     print(url)
 
 @bot.command()
-async def selenium_test(ctx):
+#Display tartine's entire menu with item status
+async def menu(ctx):
     driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver with defined options
     driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
-    items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
-    descriptions = driver.find_elements_by_class_name('menu-item-description') #Retrieves item description
-    prices = driver.find_elements_by_class_name('pricecolor') #Retrieves item price
+    items = driver.find_elements_by_xpath("//span[@class='menu-item-heading ng-binding']") #Retrieves item name
+    descriptions = driver.find_elements_by_xpath("//div[@class='menu-item-description twoline-ellipsis ng-binding ng-scope']") #Retrieves item description
+    prices = driver.find_elements_by_xpath("//div[@class='pricecolor price ng-binding ng-scope']") #Retrieves item price
+    thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']") #Retrieves style element that contains thumbnail url
 
     #Jank way to find if each item is in stock. Check if 'Not Available' appears anywhere within the clickable box. If not, assume item is available
-    stock = driver.find_elements_by_class_name('mb12m')
+    stock_status = driver.find_elements_by_xpath("//div[@class='mb12m ng-scope']") #Retrieves status of item's stock
 
     #Keep track of which item we're on in list of items
     index = 0
@@ -74,12 +76,18 @@ async def selenium_test(ctx):
         except:
             price = 'N/A'
 
+        try:
+            url = re.search('url\(\&quot\;(.*?)\&quot\;\)', thumbnail[index].get_attribute('innerHTML')).group(1)
+        except:
+            url = 'https://i.imgur.com/bAnFQSY.jpg'
+
         #Check if the string 'Not Available exists in this element at current index. If not, assume item is available and set availability as 'Available'
-        availability = 'Not Available' if 'Not Available' in stock[index].text else 'Available'
+        availability = 'Not Available' if 'Not Available' in stock_status[index].text else 'Available'
 
         embed = store_info_embed(
             item.text, 
             description,
+            url,
             price, 
             availability,
             0x00ff00 if availability == 'Available' else 0xff0000
@@ -92,23 +100,19 @@ async def selenium_test(ctx):
     driver.close()
 
 @bot.command()
-#Test function to check stock of Country Loaf every 60 seconds
-async def track_country_loaf(ctx):
+#Check stock of Country Loaf every 60 seconds
+async def country(ctx):
     while True:
-
         #Put entire function into try except because sometimes, something random fails which kills the loop
         try:
             driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver with defined options
             driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
 
-            items = driver.find_elements_by_class_name('menu-item-heading') #Retrieves item name
-            descriptions = driver.find_elements_by_class_name('menu-item-description') #Retrieves item description
-            prices = driver.find_elements_by_class_name('pricecolor') #Retrieves item price
-            thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']")
-            stock_status = driver.find_elements_by_class_name('mb12m') #Retrieves status of item's stock
-
-            #What the hell is this even
-            url = re.search('url\(\&quot\;(.*?)\&quot\;\)', thumbnail[0].get_attribute('innerHTML')).group(1)
+            items = driver.find_elements_by_xpath("//span[@class='menu-item-heading ng-binding']") #Retrieves item name
+            descriptions = driver.find_elements_by_xpath("//div[@class='menu-item-description twoline-ellipsis ng-binding ng-scope']") #Retrieves item description
+            prices = driver.find_elements_by_xpath("//div[@class='pricecolor price ng-binding ng-scope']") #Retrieves item price
+            thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']") #Retrieves style element that contains thumbnail url
+            stock_status = driver.find_elements_by_xpath("//div[@class='mb12m ng-scope']") #Retrieves status of item's stock
 
             #Country loaf is the first item on the menu. Index 0 will retrieve all information about Country loaf
             try:
@@ -125,6 +129,11 @@ async def track_country_loaf(ctx):
                 price = prices[0].text
             except:
                 price = 'N/A'
+
+            try:
+                url = re.search('url\(\&quot\;(.*?)\&quot\;\)', thumbnail[0].get_attribute('innerHTML')).group(1)
+            except:
+                url = 'https://i.imgur.com/bAnFQSY.jpg'
 
             try:
                 stock = stock_status[0].text
