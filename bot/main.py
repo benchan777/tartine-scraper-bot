@@ -161,18 +161,19 @@ async def country(ctx):
                     requests.post(f"https://maker.ifttt.com/trigger/green/with/key/{os.getenv('ifttt_key')}")
                     print('Stock has changed to available. Setting light to green.')
                     country_loaf_stock = availability
+                    store_country_loaf_info(availability)
+
 
                 #Change light color to red if stock changes from available to unavailable
                 elif availability == 'Not Available':
                     requests.post(f"https://maker.ifttt.com/trigger/red/with/key/{os.getenv('ifttt_key')}")
                     print('Stock has changed to unavailable. Setting light to red.')
                     country_loaf_stock = availability
+                    store_country_loaf_info(availability)
 
                 #If availability is N/A, do nothing. Scraping probably failed for some reason
                 else:
                     print('Availability N/A. Maybe scraping failed?')
-
-            store_country_loaf_info(availability)
 
             embed = store_info_embed(
                 item,
