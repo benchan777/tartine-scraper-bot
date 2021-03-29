@@ -76,13 +76,26 @@ async def menu(ctx):
         except:
             price = 'N/A'
 
-        try:
-            url = re.search('url\(\&quot\;(.*?)\&quot\;\)', thumbnail[index].get_attribute('innerHTML')).group(1)
-        except:
-            url = 'https://i.imgur.com/bAnFQSY.jpg'
-
         #Check if the string 'Not Available exists in this element at current index. If not, assume item is available and set availability as 'Available'
         availability = 'Not Available' if 'Not Available' in stock_status[index].text else 'Available'
+
+        try:
+            stock_status_html = stock_status[index].get_attribute('innerHTML')
+            image_html = driver.find_elements_by_xpath("//button[@class='panel flexrow ihover menu-item ada-menu-button']")
+
+            try:
+                image_check = re.search('\"h\_(.*?)pe\"', image_html[index].get_attribute('innerHTML')).group(1)
+            except:
+                url = 'https://i.imgur.com/bAnFQSY.jpg'
+
+            if image_check in stock_status_html:
+                url = re.search('url\(\&quot\;(.*?)\&quot\;\)', thumbnail[index].get_attribute('innerHTML')).group(1)
+            else:
+                url = 'https://i.imgur.com/bAnFQSY.jpg'
+
+        except Exception as e:
+            print(e)
+            url = 'https://i.imgur.com/bAnFQSY.jpg'
 
         embed = store_info_embed(
             item.text, 
@@ -150,18 +163,19 @@ async def country(ctx):
                     requests.post(f"https://maker.ifttt.com/trigger/green/with/key/{os.getenv('ifttt_key')}")
                     print('Stock has changed to available. Setting light to green.')
                     country_loaf_stock = availability
+                    store_country_loaf_info(availability)
+
 
                 #Change light color to red if stock changes from available to unavailable
                 elif availability == 'Not Available':
                     requests.post(f"https://maker.ifttt.com/trigger/red/with/key/{os.getenv('ifttt_key')}")
                     print('Stock has changed to unavailable. Setting light to red.')
                     country_loaf_stock = availability
+                    store_country_loaf_info(availability)
 
                 #If availability is N/A, do nothing. Scraping probably failed for some reason
                 else:
                     print('Availability N/A. Maybe scraping failed?')
-
-            store_country_loaf_info(availability)
 
             embed = store_info_embed(
                 item,
