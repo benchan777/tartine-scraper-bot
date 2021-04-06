@@ -1,7 +1,10 @@
 from bot.main import db
 from bot.models import CountryLoaf
-import datetime, discord, pytz
+import datetime, discord, pytz, smtplib, ssl, os
 from discord.ext import commands
+from dotenv import load_dotenv
+
+load_dotenv()
 
 #Function that helps to create discord embeds for item info
 def store_info_embed(name, description, thumbnail, price, availability, color):
@@ -32,3 +35,22 @@ def store_country_loaf_info(availability):
     )
     db.add(new_entry)
     db.commit()
+
+def send_text(availability):
+    if availability == 'available':
+        message = f"""From: {os.getenv('email')}\nTo: {os.getenv('receiver_email')}\nSubject: Country loaf in stock!\n
+        
+Country loaf is now in stock!\n
+Order here: https://guerrero.tartine.menu/pickup/"""
+
+    else:
+        message = f"""From: {os.getenv('email')}\nTo: {os.getenv('receiver_email')}\nSubject: Country loaf out of stock.\n
+        
+Country loaf is now out of stock.\n
+We will notify you when stock is replenished."""
+
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context = context) as server:
+        server.login(os.getenv('email'), os.getenv('password'))
+        server.sendmail(os.getenv('email'), os.getenv('receiver_email'), message)
