@@ -28,7 +28,7 @@ options.add_argument('--headless')
 options.add_argument('--disable-dev-shm-usage')
 
 #Import functions after initializing everything to avoid circular import error
-from bot.functions import store_info_embed, store_country_loaf_info
+from bot.functions import store_info_embed, store_country_loaf_info, send_text
 
 @bot.event
 async def on_ready():
@@ -160,16 +160,18 @@ async def country(ctx):
             if availability != country_loaf_stock:
                 #Change light color to green if stock changes from unavailable to available
                 if availability == 'Available':
-                    requests.post(f"https://maker.ifttt.com/trigger/green/with/key/{os.getenv('ifttt_key')}")
-                    print('Stock has changed to available. Setting light to green.')
+                    # requests.post(f"https://maker.ifttt.com/trigger/green/with/key/{os.getenv('ifttt_key')}")
+                    # print('Stock has changed to available. Setting light to green.')
+                    send_text('available')
                     country_loaf_stock = availability
                     store_country_loaf_info(availability)
 
 
                 #Change light color to red if stock changes from available to unavailable
                 elif availability == 'Not Available':
-                    requests.post(f"https://maker.ifttt.com/trigger/red/with/key/{os.getenv('ifttt_key')}")
-                    print('Stock has changed to unavailable. Setting light to red.')
+                    # requests.post(f"https://maker.ifttt.com/trigger/red/with/key/{os.getenv('ifttt_key')}")
+                    # print('Stock has changed to unavailable. Setting light to red.')
+                    send_text('unavailable')
                     country_loaf_stock = availability
                     store_country_loaf_info(availability)
 
