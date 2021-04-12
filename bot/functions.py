@@ -22,6 +22,17 @@ def store_info_embed(name, description, thumbnail, price, availability, color):
 
     return embed
 
+def minimal_embed(name, thumbnail, color, availability):
+    embed_1 = 'Error' if len(str(name)) == 0 else name
+    embed_2 = 0xffff00 if len(str(color)) == 0 else color
+
+    embed = discord.Embed(title = embed_1, color = embed_2)
+    embed.set_thumbnail(url = thumbnail)
+
+    embed.add_field(name = 'Availability', value = availability, inline = True)
+
+    return embed
+
 #Stores date/time/availability info of country loaf every time site is scraped
 def store_country_loaf_info(availability):
     PDT = pytz.timezone('America/Los_Angeles') #Get PDT timezone

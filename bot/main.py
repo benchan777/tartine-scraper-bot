@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from bot.models import Base, CountryLoaf
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -26,23 +27,12 @@ options.add_argument('--no-sandbox')
 options.add_argument('--headless')
 
 #Import functions after initializing everything to avoid circular import error
-from bot.functions import store_info_embed, store_country_loaf_info, send_text
+from bot.functions import store_info_embed, store_country_loaf_info, send_text, minimal_embed
 
 @bot.event
 async def on_ready():
     await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = 'for bread 🍞'))
     print(f"Logged in as {bot.user}")
-
-@bot.command()
-async def test(ctx):
-    driver = webdriver.Chrome(executable_path = os.getenv('webdriver_path'), options = options) #Instantiate Chrome webdriver with defined options
-    driver.get("https://guerrero.tartine.menu/pickup/") #Scrape Tartine Guerrero location's menu
-
-    thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']")
-
-    #What the hell is this even
-    url = re.search('url\(\&quot\;(.*?)\&quot\;\)', thumbnail[0].get_attribute('innerHTML')).group(1)
-    print(url)
 
 @bot.command()
 #Display tartine's entire menu with item status
@@ -125,6 +115,9 @@ async def country(ctx):
             thumbnail = driver.find_elements_by_xpath("//div[@class='w_front_img' and @style='height:100%;']") #Retrieves style element that contains thumbnail url
             stock_status = driver.find_elements_by_xpath("//div[@class='mb12m ng-scope']") #Retrieves status of item's stock
 
+            # Check for existence of snooze page
+            snooze = driver.find_elements_by_xpath()
+
             #Country loaf is the first item on the menu. Index 0 will retrieve all information about Country loaf
             try:
                 item = items[0].text
@@ -151,7 +144,12 @@ async def country(ctx):
             except:
                 stock = 'N/A'
 
-            availability = 'Not Available' if 'Not Available' in stock else 'N/A' if 'N/A' in stock else 'Available'
+            try:
+                snooze_status = snooze.text
+            except:
+                snooze_status = 'N/A'
+
+            availability = 'Not Available' if 'Not Available' in stock else 'N/A' if 'N/A' in stock else 'Offline' if 'todo' in snooze_status else 'Available'
 
             #Checks status of bread stock from previous scrape. If there is a change, trigger a change in light color
             global country_loaf_stock
@@ -159,17 +157,16 @@ async def country(ctx):
                 #Change light color to green if stock changes from unavailable to available
                 if availability == 'Available':
                     # requests.post(f"https://maker.ifttt.com/trigger/green/with/key/{os.getenv('ifttt_key')}")
-                    # print('Stock has changed to available. Setting light to green.')
                     send_text('available')
+                    print('Stock has changed to available. Sending notification text.')
                     country_loaf_stock = availability
                     store_country_loaf_info(availability)
-
 
                 #Change light color to red if stock changes from available to unavailable
                 elif availability == 'Not Available':
                     # requests.post(f"https://maker.ifttt.com/trigger/red/with/key/{os.getenv('ifttt_key')}")
-                    # print('Stock has changed to unavailable. Setting light to red.')
                     send_text('unavailable')
+                    print('Stock has changed to unavailable. Sending notification text.')
                     country_loaf_stock = availability
                     store_country_loaf_info(availability)
 
@@ -189,6 +186,60 @@ async def country(ctx):
             driver.close()
             await asyncio.sleep(60)
 
+        except Exception as e:
+            print(e)
+            pass
+
+@bot.command()
+# Alternative country loaf stock checker that doesn't use Selenium
+async def country_v2(ctx):
+    while True:
+        try:
+            r = requests.get('https://guerrero.tartine.menu/pickup/')
+            soup = BeautifulSoup(r.content, "html.parser")
+            data = soup.find("body", class_ = "whitebackground").find('script')
+
+            temp_string = ''
+            stock_list = []
+
+            for i in range(0, len(str(data))):
+                temp_string = temp_string + str(data)[i]
+
+                if '''"in_stock": true''' in temp_string:
+                    stock_list.append('Available')
+                    temp_string = ''
+
+                if '''"in_stock": false''' in temp_string:
+                    stock_list.append('Not Available')
+                    temp_string = ''
+
+            global country_loaf_stock
+            if stock_list[26] != country_loaf_stock:
+                if stock_list[26] == 'Available':
+                    send_text('available')
+                    print('Stock has changed to available. Sending notification text.')
+                    country_loaf_stock = stock_list[26]
+                    store_country_loaf_info(stock_list[26])
+
+                elif stock_list[26] == 'Not Available':
+                    send_text('unavailable')
+                    print('Stock has changed to unavailable. Sending notification text.')
+                    country_loaf_stock = stock_list[26]
+                    store_country_loaf_info(stock_list[26])
+
+                else:
+                    print('Availability N/A. Maybe scraping failed?')
+
+            embed = minimal_embed(
+                'Country Loaf',
+                'https://s3.amazonaws.com/toasttab/restaurants/restaurant-13508000000000000/menu/items/8/item-200000007632874878_1598045606.jpg',
+                0x00ff00 if stock_list[26] == 'Available' else 0xff0000 if stock_list[26] == 'Not Available' else 0xffff00,
+                stock_list[26]
+            )
+
+            await ctx.send(embed = embed)
+            await asyncio.sleep(60)
+                
         except Exception as e:
             print(e)
             pass
