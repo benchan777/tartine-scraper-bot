@@ -215,19 +215,21 @@ async def country_v2(ctx):
                     stock_list.append('Not Available')
                     temp_string = ''
 
+            print(stock_list[25])
+
             global country_loaf_stock
-            if stock_list[26] != country_loaf_stock:
-                if stock_list[26] == 'Available':
+            if stock_list[25] != country_loaf_stock:
+                if stock_list[25] == 'Available':
                     send_text('available')
                     print('Stock has changed to available. Sending notification text.')
-                    country_loaf_stock = stock_list[26]
-                    store_country_loaf_info(stock_list[26])
+                    country_loaf_stock = stock_list[25]
+                    store_country_loaf_info(stock_list[25])
 
-                elif stock_list[26] == 'Not Available':
+                elif stock_list[25] == 'Not Available':
                     send_text('unavailable')
                     print('Stock has changed to unavailable. Sending notification text.')
-                    country_loaf_stock = stock_list[26]
-                    store_country_loaf_info(stock_list[26])
+                    country_loaf_stock = stock_list[25]
+                    store_country_loaf_info(stock_list[25])
 
                 else:
                     print('Availability N/A. Maybe scraping failed?')
@@ -235,8 +237,8 @@ async def country_v2(ctx):
             embed = minimal_embed(
                 'Country Loaf',
                 'https://s3.amazonaws.com/toasttab/restaurants/restaurant-13508000000000000/menu/items/8/item-200000007632874878_1598045606.jpg',
-                0x00ff00 if stock_list[26] == 'Available' else 0xff0000 if stock_list[26] == 'Not Available' else 0xffff00,
-                stock_list[26]
+                0x00ff00 if stock_list[25] == 'Available' else 0xff0000 if stock_list[25] == 'Not Available' else 0xffff00,
+                stock_list[25]
             )
 
             await ctx.send(embed = embed)
