@@ -213,30 +213,30 @@ async def country_v2(ctx):
                     stock_list.append('Not Available')
                     temp_string = ''
 
-            print(stock_list[78])
+            print(stock_list[29])
 
             global country_loaf_stock
-            if stock_list[78] != country_loaf_stock:
-                if stock_list[78] == 'Available':
+            if stock_list[29] != country_loaf_stock:
+                if stock_list[29] == 'Available':
                     send_text('available')
                     print('Stock has changed to available. Sending notification text.')
-                    country_loaf_stock = stock_list[78]
-                    store_country_loaf_info(stock_list[78])
+                    country_loaf_stock = stock_list[29]
+                    store_country_loaf_info(stock_list[29])
 
-                elif stock_list[78] == 'Not Available':
+                elif stock_list[29] == 'Not Available':
                     send_text('unavailable')
                     print('Stock has changed to unavailable. Sending notification text.')
-                    country_loaf_stock = stock_list[78]
-                    store_country_loaf_info(stock_list[78])
+                    country_loaf_stock = stock_list[29]
+                    store_country_loaf_info(stock_list[29])
 
                 else:
                     print('Availability N/A. Maybe scraping failed?')
 
             embed = minimal_embed(
                 'Country Loaf',
-                'https://s3.amazonaws.com/toasttab/restaurants/restaurant-13508000000000000/menu/items/8/item-200000007632874878_1598045606.jpg',
-                0x00ff00 if stock_list[78] == 'Available' else 0xff0000 if stock_list[78] == 'Not Available' else 0xffff00,
-                stock_list[78]
+                'https://s3.amazonaws.com/toasttab/restaurants/restaurant-13508000000000000/menu/items/8/item-200000007632874829_1598045606.jpg',
+                0x00ff00 if stock_list[29] == 'Available' else 0xff0000 if stock_list[29] == 'Not Available' else 0xffff00,
+                stock_list[29]
             )
 
             await ctx.send(embed = embed)
