@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from discord.ext import commands, tasks
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import asyncio, discord, os, requests, re
+import asyncio, discord, os, requests, re, json
 
 load_dotenv()
 
@@ -196,38 +196,31 @@ async def country_v2(ctx):
     while True:
         try:
             r = requests.get('https://guerrero.tartine.menu/pickup/')
-            soup = BeautifulSoup(r.content, "html.parser")
-            data = soup.find("body", class_ = "whitebackground").find('script')
+            soup = str(BeautifulSoup(r.content, "html.parser"))
+            menu_data = re.search(r'menu_data = (.*);', soup).group(1)
+            menu_data_dict = json.loads(menu_data)
 
-            temp_string = ''
-            stock_list = []
-
-            for i in range(0, len(str(data))):
-                temp_string = temp_string + str(data)[i]
-
-                if '''"in_stock": true''' in temp_string:
-                    stock_list.append('Available')
-                    temp_string = ''
-
-                if '''"in_stock": false''' in temp_string:
-                    stock_list.append('Not Available')
-                    temp_string = ''
-
-            print(stock_list[78])
+            stock_status = ''
+            scraped_stock = menu_data_dict['menuItems'][os.getenv('item_id')]['in_stock']
+            
+            if scraped_stock == True:
+                stock_status = 'Available'
+            else:
+                stock_status = 'Not Available'
 
             global country_loaf_stock
-            if stock_list[78] != country_loaf_stock:
-                if stock_list[78] == 'Available':
+            if stock_status != country_loaf_stock:
+                if stock_status == 'Available':
                     send_text('available')
                     print('Stock has changed to available. Sending notification text.')
-                    country_loaf_stock = stock_list[78]
-                    store_country_loaf_info(stock_list[78])
+                    country_loaf_stock = stock_status
+                    store_country_loaf_info(stock_status)
 
-                elif stock_list[78] == 'Not Available':
+                elif stock_status == 'Not Available':
                     send_text('unavailable')
                     print('Stock has changed to unavailable. Sending notification text.')
-                    country_loaf_stock = stock_list[78]
-                    store_country_loaf_info(stock_list[78])
+                    country_loaf_stock = stock_status
+                    store_country_loaf_info(stock_status)
 
                 else:
                     print('Availability N/A. Maybe scraping failed?')
@@ -235,13 +228,14 @@ async def country_v2(ctx):
             embed = minimal_embed(
                 'Country Loaf',
                 'https://s3.amazonaws.com/toasttab/restaurants/restaurant-13508000000000000/menu/items/8/item-200000007632874878_1598045606.jpg',
-                0x00ff00 if stock_list[78] == 'Available' else 0xff0000 if stock_list[78] == 'Not Available' else 0xffff00,
-                stock_list[78]
+                0x00ff00 if stock_status == 'Available' else 0xff0000 if stock_status == 'Not Available' else 0xffff00,
+                stock_status
             )
 
             await ctx.send(embed = embed)
             await asyncio.sleep(60)
                 
         except Exception as e:
+            await ctx.send(e)
             print(e)
             pass
